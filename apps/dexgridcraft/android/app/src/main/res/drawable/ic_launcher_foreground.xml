@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- DexGridCraft's icon: a sheet's grid on a monitor (an original design, the same family as
+     DexPdfCraft's page on a monitor). Drawn inside the adaptive icon's 66 dp safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <!-- monitor -->
+    <path android:strokeColor="#FFFFFFFF" android:strokeWidth="3.5" android:fillColor="#00000000"
+        android:pathData="M31,35h46a4,4 0 0 1 4,4v26a4,4 0 0 1 -4,4h-46a4,4 0 0 1 -4,-4v-26a4,4 0 0 1 4,-4z" />
+    <path android:strokeColor="#FFFFFFFF" android:strokeWidth="3.5" android:strokeLineCap="round" android:fillColor="#00000000"
+        android:pathData="M46,78h16M54,69v9" />
+    <!-- sheet: a white card with a 3 x 4 grid, header row and column tinted -->
+    <path android:fillColor="#FFFFFFFF" android:pathData="M40,29h28a2,2 0 0 1 2,2v28a2,2 0 0 1 -2,2h-28a2,2 0 0 1 -2,-2v-28a2,2 0 0 1 2,-2z" />
+    <path android:fillColor="#FFC8EBD5" android:pathData="M40,29h28a2,2 0 0 1 2,2v5h-32v-5a2,2 0 0 1 2,-2z" />
+    <path android:fillColor="#FFC8EBD5" android:pathData="M38,36h8v23a2,2 0 0 1 -2,2h-4a2,2 0 0 1 -2,-2z" />
+    <path android:strokeColor="#FF17663A" android:strokeWidth="1.2" android:fillColor="#00000000"
+        android:pathData="M38,36h32M38,44.3h32M38,52.6h32M46,29v32M54,29v32M62,29v32" />
+    <!-- the selected cell -->
+    <path android:strokeColor="#FF17663A" android:strokeWidth="2.4" android:fillColor="#00000000"
+        android:pathData="M54,44.3h8v8.3h-8z" />
+</vector>

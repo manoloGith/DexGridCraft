@@ -1,0 +1,7 @@
+[submodule "upstream"]
+	path = upstream
+	url = https://github.com/manoloGith/gridcraft
+	branch = dexcraft/android
+[submodule "craft-android"]
+	path = craft-android
+	url = https://github.com/manoloGith/craft-android

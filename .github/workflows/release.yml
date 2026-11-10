@@ -1,0 +1,106 @@
+name: Release
+
+# Push a tag like v0.1.0, or run this workflow by hand (it then tags the commit it runs on with
+# the version in gradle.properties), to build the release APK and publish it as a GitHub release.
+# With the repository secrets DEXGRIDCRAFT_KEYSTORE_BASE64, DEXGRIDCRAFT_KEYSTORE_PASSWORD,
+# DEXGRIDCRAFT_KEY_ALIAS and DEXGRIDCRAFT_KEY_PASSWORD the APK is signed with the release key;
+# without them it is signed with a debug key and published as a pre-release.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Version (the tag's, or gradle.properties' when run by hand)
+        id: version
+        run: |
+          listed="$(sed -n 's/^dexgridcraft.version=//p' apps/dexgridcraft/android/gradle.properties)"
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then tag="${GITHUB_REF_NAME}"; else tag="v${listed}"; fi
+          version="${tag#v}"
+          [ "${version}" = "${listed}" ] || { echo "gradle.properties' dexgridcraft.version is ${listed}, not ${version}"; exit 1; }
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Rust (rust-toolchain.toml) and cargo-ndk
+        run: |
+          rustup show active-toolchain || rustup toolchain install
+          cargo install cargo-ndk --version 4.1.2 --locked
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: "platforms;android-36 build-tools;36.0.0 ndk;29.0.14206865"
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: release
+
+      - name: Release key
+        id: key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.DEXGRIDCRAFT_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.DEXGRIDCRAFT_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.DEXGRIDCRAFT_KEY_ALIAS }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            # Pasted secrets may carry spaces or line breaks: drop them (the generated values have none).
+            store="$RUNNER_TEMP/release.jks"
+            echo "$KEYSTORE_BASE64" | tr -d '[:space:]' | base64 -d > "$store"
+            store_pass="$(printf '%s' "$KEYSTORE_PASSWORD" | tr -d '\r\n')"
+            # A PKCS12 keystore (keytool's default, and DexGridCraft's) keys with the store's password.
+            key_pass="$store_pass"
+            alias="$(printf '%s' "$KEY_ALIAS" | tr -d '[:space:]')"
+            # An alias the keystore doesn't have: use its only key.
+            if ! keytool -list -keystore "$store" -storepass "$store_pass" -alias "$alias" > /dev/null 2>&1; then
+              found="$(keytool -list -v -keystore "$store" -storepass "$store_pass" 2>/dev/null | sed -n 's/^Alias name: //p' | head -1)"
+              echo "The key alias secret doesn't name a key in the keystore; using its key '${found}'."
+              alias="$found"
+            fi
+            echo "::add-mask::$store_pass"
+            echo "::add-mask::$key_pass"
+            {
+              echo "DEXGRIDCRAFT_KEYSTORE=$store"
+              echo "DEXGRIDCRAFT_KEYSTORE_PASSWORD=$store_pass"
+              echo "DEXGRIDCRAFT_KEY_ALIAS=$alias"
+              echo "DEXGRIDCRAFT_KEY_PASSWORD=$key_pass"
+            } >> "$GITHUB_ENV"
+            echo "signed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No release key in the repository's secrets: signing with a debug key (pre-release)."
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: APK (arm64-v8a)
+        working-directory: apps/dexgridcraft/android
+        run: |
+          ./gradlew --no-daemon assembleRelease -Pdexgridcraft.abis=arm64-v8a \
+            -x lintVitalAnalyzeRelease -x lintVitalReportRelease -x lintVitalRelease
+          mkdir -p "$RUNNER_TEMP/out"
+          cp app/build/outputs/apk/release/app-release.apk \
+            "$RUNNER_TEMP/out/DexGridCraft-${{ steps.version.outputs.version }}-arm64-v8a.apk"
+          (cd "$RUNNER_TEMP/out" && sha256sum *.apk > SHA256SUMS.txt)
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: DexGridCraft ${{ steps.version.outputs.version }}
+          prerelease: ${{ steps.key.outputs.signed != 'true' }}
+          body_path: docs/release-notes/${{ steps.version.outputs.tag }}.md
+          files: |
+            ${{ runner.temp }}/out/*.apk
+            ${{ runner.temp }}/out/SHA256SUMS.txt
