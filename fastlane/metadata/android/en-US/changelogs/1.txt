@@ -1,0 +1,1 @@
+First release: GridCraft 0.16.0's desktop interface on Android, for Samsung DeX and desktop windows, and on phones and tablets.

@@ -1,0 +1,1 @@
+Primera versión: la interfaz de escritorio de GridCraft 0.16.0 en Android, para Samsung DeX y ventanas de escritorio, y también en móviles y tabletas.

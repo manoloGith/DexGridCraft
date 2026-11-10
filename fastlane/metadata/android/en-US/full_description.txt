@@ -1,0 +1,10 @@
+<p><b>DexGridCraft</b> brings the desktop interface of <a href="https://github.com/storytold/gridcraft">GridCraft</a>, an open-source spreadsheet written in Rust, to Android. It is made for <b>Samsung DeX</b> and Android's desktop windows, with a mouse and a keyboard, and works on tablets and phones too.</p>
+<p><b>GridCraft's whole interface</b>, laid out as on the desktop: the ribbon, the formula bar, sheets, the Backstage view and its dialogs.</p>
+<ul>
+<li>Open Excel (xlsx, xlsm), older Excel (xls), xlsb, OpenDocument (ods) and CSV workbooks</li>
+<li>Formulas with hundreds of functions, number formats, conditional formatting and tables</li>
+<li>Charts, pictures, sorting and filtering, pivot tables, macros</li>
+<li>Save as xlsx, export to CSV, web page and PDF, and print with Android's print service</li>
+</ul>
+<p><b>Made for Android:</b> open and save with the system file picker (changes go back to the original file), Open with and Share, drag and drop in DeX, a mouse with buttons, wheel and cursors, a hardware keyboard with its layout and shortcuts, copy and paste with other apps, and the on-screen keyboard on phones.</p>
+<p>No account, no ads, no telemetry. MIT or Apache-2.0. Thanks to GridCraft and its authors, whose engine and interface this app is built on.</p>
