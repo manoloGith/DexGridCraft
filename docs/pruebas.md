@@ -1,8 +1,10 @@
 # Qué probar al instalar DexGridCraft
 
 Instala el APK (`DexGridCraft-…-arm64-v8a.apk` o el de debug de la CI) en un móvil o tableta con
-Android 10 o posterior. Si algo falla, pulsa **Ctrl+Mayús+D** (o abre el icono «DexGridCraft
-diagnostics» del APK de debug), copia el informe y pégalo en el issue o el chat.
+Android 10 o posterior. El release no muestra herramientas de diagnóstico. Si algo falla y hace
+falta el informe, instala el APK de debug de la CI (artefacto `dexgridcraft-debug-apk`), repite el
+fallo, pulsa **Ctrl+Mayús+D** (o abre el icono «DexGridCraft diagnostics»), copia el informe y
+pégalo en el issue o el chat.
 
 Marca cada punto con ✅ / ❌ y anota lo que veas.
 
@@ -60,6 +62,18 @@ Marca cada punto con ✅ / ❌ y anota lo que veas.
 - [ ] Insertar ▸ Imágenes ▸ Examinar: elige una imagen PNG/JPEG y se inserta en la hoja.
 - [ ] Con AutoGuardado activado (barra de título) y un archivo abierto, los cambios se guardan solos.
 
+## 4b. Pestañas de libros (0.2.0)
+- [ ] Bajo la cinta hay una pestaña por libro abierto; la del libro que ves está resaltada.
+- [ ] Abre un segundo libro (o pulsa +): aparece su pestaña y pasa a ser la activa.
+- [ ] Clic en otra pestaña: se muestra ese libro, con su hoja y su selección.
+- [ ] Un libro con cambios sin guardar muestra un punto; al pasar el ratón, la ×.
+- [ ] × (o clic central) en un libro sin cambios lo cierra; con cambios, pregunta Guardar / No
+      guardar / Cancelar.
+- [ ] Vista ▸ Nueva ventana: el mismo libro aparece como «Libro:1» y «Libro:2».
+- [ ] Muchos libros: la tira se desplaza en horizontal y los nombres largos se cortan con «…».
+- [ ] En el release no aparece «Diagnostics» al mantener pulsado (o clic derecho) el icono, ni
+      hace nada Ctrl+Mayús+D.
+
 ## 5. Cerrar con cambios sin guardar
 - [ ] Haz un cambio y pulsa la X de la ventana (o el botón Atrás): pregunta Guardar / No guardar /
       Cancelar. Cancelar deja la app abierta; No guardar la cierra.
@@ -85,7 +99,7 @@ Marca cada punto con ✅ / ❌ y anota lo que veas.
 
 ## 8. Rendimiento
 - [ ] Un libro grande (miles de filas) se desplaza con fluidez.
-- [ ] El informe de diagnóstico (Ctrl+Mayús+D) dice `renderer wgpu, … (Vulkan…)` o
+- [ ] (APK de debug) El informe de diagnóstico (Ctrl+Mayús+D) dice `renderer wgpu, … (Vulkan…)` o
       `renderer glow`; si dice glow, anótalo.
 
 ## Límites conocidos (no son fallos)

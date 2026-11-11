@@ -8,6 +8,7 @@
 //! in its web version), since an Android activity has one window.
 
 pub mod prefs;
+pub mod tabs;
 
 #[cfg(target_os = "android")]
 pub(crate) mod android;

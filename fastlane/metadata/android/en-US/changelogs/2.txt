@@ -1,0 +1,1 @@
+Workbook tabs under the ribbon; Save As and exports no longer block; system clipboard in text fields; no diagnostics in the release build.

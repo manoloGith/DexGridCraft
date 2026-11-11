@@ -128,6 +128,8 @@ fn services(answers: Answers, print_dir: Arc<PathBuf>) -> Services {
         })),
         // Links: an Intent (craft-android only lets http, https and mailto through).
         open_url: Some(Box::new(|url: &str| platform::desktop::open_url(url))),
+        // Workbook tabs under the ribbon: the activity's one window shows every workbook window.
+        below_ribbon: Some(crate::tabs::below_ribbon()),
         printers: Some(discover()),
         print_native: Some(submit(print_dir)),
         ..Default::default()

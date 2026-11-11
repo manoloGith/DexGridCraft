@@ -28,7 +28,7 @@ dispositivo entre ellas. La lista de pruebas en el dispositivo está en
 | 0 | Repositorio, fork con rama `dexcraft/android`, submódulos `upstream` y `craft-android`, workspace con los `[patch]` de upstream copiados y winit de craft-android, Gradle + cargo-ndk, CI, NOTICE, licencias, icono propio |
 | 1 | eframe en GameActivity (CraftActivity), wgpu con glow de reserva, el motor en arm64, diagnóstico de craft-android (renderizador, versión) |
 | 2 | La interfaz real de GridCraft, arrancada como en escritorio; entorno HOME/XDG/LANG (craft-android); idioma y tema del sistema; fuentes de `/system/fonts` (fork) |
-| 3 | Selectores del SAF con escritura de vuelta: Abrir, Guardar como, Exportar (CSV, HTML, PDF), Insertar imagen; portapapeles (texto, HTML, imagen) y Ctrl+C/X/V; «Abrir con» y «Compartir»; ratón, teclado y ciclo de vida (craft-android); informe de diagnóstico (Ctrl+Mayús+D) |
+| 3 | Selectores del SAF con escritura de vuelta: Abrir, Guardar como, Exportar (CSV, HTML, PDF), Insertar imagen; portapapeles (texto, HTML, imagen) y Ctrl+C/X/V; «Abrir con» y «Compartir»; ratón, teclado y ciclo de vida (craft-android); informe de diagnóstico (Ctrl+Mayús+D, solo en el APK de debug desde 0.2.0) |
 | 4 | Cursores, título de la tarea («Libro1 — DexGridCraft»), arrastrar y soltar libros (craft-android y `droppableMimeTypes`) |
 | 5 | Imprimir: la página Imprimir de GridCraft lista una impresora «Android» y su PDF va al diálogo de impresión del sistema; enlaces con Intent; sin autoactualización |
 | 6 | Teclado en pantalla e insets (craft-android) |
@@ -44,6 +44,10 @@ dispositivo entre ellas. La lista de pruebas en el dispositivo está en
   mismas opciones que en escritorio (por ejemplo, el rango de la exportación a PDF).
 - **Ctrl+C/X/V.** En Android, egui-winit no tiene portapapeles y las teclas llegan de la actividad
   como teclas sueltas. Lo resuelve el `Shell` de craft-android (`clipboard_keys`) para todas las apps.
+- **Pestañas de libros (0.2.0).** Como en Android todas las ventanas de libro van dentro de la
+  única ventana de la actividad, bajo la cinta hay una pestaña por ventana (`src/tabs.rs`, con la
+  `TabStrip` de craft-android y el enganche `Services::below_ribbon` del fork). Cada acción usa los
+  comandos de GridCraft: `view.switchWindows`, `window.close` (pregunta si hay cambios) y `file.new`.
 - **Una sola ventana.** «Nueva ventana» y «Cambiar ventanas» funcionan dentro de la app, como en la
   versión web de GridCraft.
 - **Sin impresoras propias.** El número de copias y la doble cara se eligen en el diálogo de Android.

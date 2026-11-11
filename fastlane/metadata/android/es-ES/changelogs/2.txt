@@ -1,0 +1,1 @@
+Pestañas de libros bajo la cinta; Guardar como y exportar ya no bloquean; portapapeles del sistema en los cuadros de texto; sin diagnóstico en el release.
