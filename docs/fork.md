@@ -2,12 +2,13 @@
 
 `upstream/` es un submódulo de **[manoloGith/gridcraft](https://github.com/manoloGith/gridcraft)**,
 un fork de `storytold/gridcraft`, en la rama **`dexcraft/android`**: el `main` de upstream (GridCraft
-0.16.0) más un commit que DexGridCraft necesita en Android.
+0.16.0) más dos commits que DexGridCraft necesita en Android.
 
 | Cambio | Por qué |
 |---|---|
 | Fuentes de `/system/fonts` (`crates/ui-egui/src/theme/android_fonts.rs`, enganchado en `font_setup::candidates` y `font_fallback::fallback_faces`) | Android guarda ahí sus fuentes (Roboto, Noto CJK, árabe, hebreo, tailandés…) y no tiene fontconfig. Solo se compila para Android. |
 | «Ayuda ▸ Buscar actualizaciones» en Android (`app/prefs.rs`) | La autoactualización de escritorio no sirve para una app Android: lo dice en lugar de ofrecerla. |
+| Diálogo de guardar que responde más tarde (`Services::pick_save_async`, `app/save_picker.rs`) | Guardar como, Exportar y Guardar una copia esperaban la respuesta de `pick_save` en el hilo de la interfaz. En Android el selector es otra actividad y la pausa de la actividad espera a ese hilo: se colgaría. Con `pick_save_async` el host abre el selector y manda la ruta después; GridCraft guarda la acción pendiente y la ejecuta, igual que tras el diálogo de escritorio. Genérico y con tests (`tests/it/file_menu.rs`): se podría proponer a storytold. |
 
 A diferencia de PdfCraft, **no hacen falta los shims de `rfd` y `arboard`**: la interfaz de GridCraft
 recibe los diálogos de archivos y el portapapeles del binario que la arranca (`Services`), así que la

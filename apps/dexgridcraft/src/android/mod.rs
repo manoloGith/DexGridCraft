@@ -74,32 +74,29 @@ fn path_string(path: &std::path::Path) -> Option<String> {
 }
 
 fn services(answers: Answers, print_dir: Arc<PathBuf>) -> Services {
-    let open_answers = answers.clone();
-    let save_answers = answers;
     Services {
         // File › Open: the system picker; the workbook opens when it answers.
         open_async: Some(Box::new(move || {
-            let answers = open_answers.clone();
+            let answers = answers.clone();
             let picked = platform::pickers::pick(PickKind::OpenFile, None, &filters("Spreadsheets", &SPREADSHEETS), None);
             when_picked(picked, move |paths| {
                 if let Some(path) = paths.first().and_then(|p| path_string(p)) {
-                    answers.send(Picked::Open(path));
+                    answers.send(Picked(path));
                 }
             });
         })),
-        // Save As and the exports: the system's Save picker, then the same command the desktop
-        // runs once its picker returns (`GridApp::take_answers`). Nothing is written now.
-        pick_save: Some(Box::new(move |suggested: &str| {
-            let answers = save_answers.clone();
+        // Save As, the exports and Save a Copy: the system's Save picker; GridCraft runs what
+        // follows (save, export) when it answers. A cancelled picker drops the reply.
+        pick_save_async: Some(Box::new(|suggested: &str, reply: std::sync::mpsc::Sender<String>| {
             let format = crate::format_of(suggested);
             let name = std::path::Path::new(suggested).file_name().and_then(std::ffi::OsStr::to_str).unwrap_or("Book1.xlsx").to_owned();
             let picked = platform::pickers::pick(PickKind::Save, None, &filters(&format.to_uppercase(), &[format.as_str()]), Some(&name));
             when_picked(picked, move |paths| {
                 if let Some(path) = paths.first().and_then(|p| path_string(p)) {
-                    answers.send(Picked::Save { path, format });
+                    let _ = reply.send(path);
+                    platform::events::wake();
                 }
             });
-            None
         })),
         // Insert › Pictures: the picture's bytes, as GridCraft's web version reads them.
         pick_picture_async: Some(Box::new(|inbox: Inbox| {

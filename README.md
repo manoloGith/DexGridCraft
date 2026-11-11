@@ -9,7 +9,7 @@ No se reescribe la interfaz: se compila para Android la propia interfaz egui de 
 ([craft-android](https://github.com/manoloGith/craft-android)), la misma que usa
 [DexPdfCraft](https://github.com/manoloGith/DexPdfCraft).
 
-> Estado: **0.1.0, fases 0 a 7 hechas sin probar aún en un dispositivo**. El APK compila; lo que hay
+> Estado: **0.1.0, fases 0 a 7 hechas y probadas en un dispositivo**. Lo que hay
 > que comprobar al instalarlo está en [docs/pruebas.md](docs/pruebas.md). Plan y decisiones en
 > [docs/plan.md](docs/plan.md); los cambios a GridCraft, en [docs/fork.md](docs/fork.md).
 
@@ -22,7 +22,6 @@ DexGridCraft/
 ├── apps/dexgridcraft/        la crate de la app (cdylib que carga Android) + binario de escritorio
 │   ├── src/lib.rs            GridApp: arranca la interfaz de GridCraft como su binario de escritorio
 │   ├── src/android/mod.rs    android_main y los Services de GridCraft sobre craft-android
-│   ├── src/clipboard.rs      Ctrl+C/X/V y el portapapeles del sistema en Android
 │   ├── src/prefs.rs          ui.json y prefs.json, donde los guarda GridCraft en Linux
 │   └── android/              proyecto Gradle: MainActivity : CraftActivity
 ├── scripts/sync-upstream.sh  rebasa el fork sobre storytold/gridcraft

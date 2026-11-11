@@ -3,7 +3,7 @@
 DexGridCraft sigue el [prompt de portado de DexPdfCraft](https://github.com/manoloGith/DexPdfCraft/blob/main/docs/PORTING-PROMPT.md).
 Como GridCraft usa el mismo egui (`6d518fc`) y el mismo winit (`a517b38`) que PdfCraft, toda la capa
 Android viene hecha en craft-android y las fases se han hecho de una vez, sin pasar por el
-dispositivo entre ellas. **Nada se ha probado aún en un dispositivo**: la lista de pruebas está en
+dispositivo entre ellas. La lista de pruebas en el dispositivo está en
 [pruebas.md](pruebas.md).
 
 ## Lo que se encontró al estudiar GridCraft (sección 6 del prompt)
@@ -38,20 +38,12 @@ dispositivo entre ellas. **Nada se ha probado aún en un dispositivo**: la lista
 
 - **Los selectores no bloquean.** En GridCraft, `pick_open` y `pick_save` esperan la respuesta en el
   hilo de la interfaz. En Android eso cuelga la app, porque la pausa de la actividad (que ocurre al
-  abrir el selector) espera a ese hilo. Por eso:
-  - *Abrir* usa `Services::open_async`: el selector se abre y el libro se abre cuando contesta.
-  - *Guardar como* y *Exportar* usan `pick_save`, que abre el selector y devuelve «cancelado» al
-    instante. Cuando el usuario elige el archivo, `GridApp` ejecuta el mismo comando que el
-    escritorio ejecutaría (`file.save`, `file.exportCsv`, `file.exportHtml` o `file.exportPdf`) y cierra
-    la vista Backstage.
-  - Límite: **«Guardar una copia» en xlsx** guarda el libro en el archivo elegido (pasa a ser su
-    archivo), en lugar de dejar una copia aparte. La exportación a PDF con un rango o unas hojas
-    concretas exporta con las opciones por defecto.
-  - Arreglo de fondo (pendiente): proponer a GridCraft una variante asíncrona de `pick_save` en
-    `Services`, como ya tiene `open_async`.
+  abrir el selector) espera a ese hilo. *Abrir* usa `Services::open_async`, que GridCraft ya tenía
+  para la web; *Guardar como*, *Exportar* y *Guardar una copia* usan `Services::pick_save_async`, que
+  añade el fork: GridCraft guarda lo que debe hacer y lo hace cuando llega la respuesta, con las
+  mismas opciones que en escritorio (por ejemplo, el rango de la exportación a PDF).
 - **Ctrl+C/X/V.** En Android, egui-winit no tiene portapapeles y las teclas llegan de la actividad
-  como teclas sueltas, así que `src/clipboard.rs` las convierte en Copiar/Cortar/Pegar con el
-  portapapeles del sistema. Debería pasar a craft-android para todas las apps.
+  como teclas sueltas. Lo resuelve el `Shell` de craft-android (`clipboard_keys`) para todas las apps.
 - **Una sola ventana.** «Nueva ventana» y «Cambiar ventanas» funcionan dentro de la app, como en la
   versión web de GridCraft.
 - **Sin impresoras propias.** El número de copias y la doble cara se eligen en el diálogo de Android.

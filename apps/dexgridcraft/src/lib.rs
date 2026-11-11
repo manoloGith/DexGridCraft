@@ -7,7 +7,6 @@
 //! workbook windows the desktop opens as native windows are GridCraft's in-app windows here (as
 //! in its web version), since an Android activity has one window.
 
-pub mod clipboard;
 pub mod prefs;
 
 #[cfg(target_os = "android")]
@@ -17,7 +16,6 @@ use std::sync::mpsc::{Receiver, Sender, channel};
 
 use gridcraft_engine::Session;
 use gridcraft_ui_egui::{Services, SheetApp};
-use serde_json::json;
 
 /// What to start with.
 #[derive(Clone, Debug, Default)]
@@ -26,19 +24,14 @@ pub struct Launch {
     pub files: Vec<String>,
 }
 
-/// A system picker's answer that arrives after the frame that asked for it. Android's pickers
-/// are other activities: the interface thread can't wait for them, because the activity's
-/// pause waits for that thread.
+/// A workbook to open that a system picker chose after the frame that asked for it. Android's
+/// pickers are other activities: the interface thread can't wait for them, because the
+/// activity's pause waits for that thread. (Save pickers answer through GridCraft's own
+/// `Services::pick_save_async`.)
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub enum Picked {
-    /// File › Open: the workbook to open.
-    Open(String),
-    /// Save As and the exports: where, and the format asked for (the suggested name's extension:
-    /// `xlsx`, `csv`, `html` or `pdf`).
-    Save { path: String, format: String },
-}
+pub struct Picked(pub String);
 
-/// Where the host's pickers send their late answers ([`Picked`]).
+/// Where the host's Open picker sends its late answers ([`Picked`]).
 #[derive(Clone)]
 pub struct Answers {
     tx: Sender<Picked>,
@@ -52,30 +45,13 @@ impl Answers {
     }
 }
 
-/// The format a Save picker was asked for, from the name it suggests (`Book1.pdf` → `pdf`).
+/// What a Save picker offers to save (`Book1.pdf` → `pdf`), for its type filter.
 pub fn format_of(suggested: &str) -> String {
     let ext = std::path::Path::new(suggested).extension().and_then(std::ffi::OsStr::to_str).map(str::to_ascii_lowercase);
     match ext.as_deref() {
         Some(e @ ("csv" | "html" | "pdf")) => e.to_owned(),
         _ => "xlsx".to_owned(),
     }
-}
-
-/// The command that writes `format` to `path`, as the desktop's Save As and Export do once their
-/// picker has answered.
-pub fn save_command(path: &str, format: &str) -> (&'static str, serde_json::Value) {
-    let id = match format {
-        "pdf" => "file.exportPdf",
-        "csv" => "file.exportCsv",
-        "html" => "file.exportHtml",
-        _ => "file.save",
-    };
-    let path = match (format, std::path::Path::new(path).extension()) {
-        // A workbook saved without an extension is an .xlsx, as on the desktop.
-        ("xlsx", None) => format!("{path}.xlsx"),
-        _ => path.to_owned(),
-    };
-    (id, json!({ "path": path }))
 }
 
 /// GridCraft's interface as an eframe app: what the desktop binary's `App` does, minus the
@@ -118,24 +94,10 @@ impl GridApp {
         self.sheet.open_path(path);
     }
 
-    /// The pickers' late answers, applied as the desktop applies them when its picker returns.
+    /// The Open picker's late answers.
     fn take_answers(&mut self) {
-        while let Ok(picked) = self.answers.try_recv() {
-            match picked {
-                Picked::Open(path) => self.open(&path),
-                Picked::Save { path, format } => {
-                    if !self.sheet.commit_edit(0, 0, false, false) {
-                        continue;
-                    }
-                    let (id, params) = save_command(&path, &format);
-                    match self.sheet.run(id, params) {
-                        // Done: the Backstage view (Save As, Export) closes, as on the desktop.
-                        Ok(_) => self.sheet.backstage = None,
-                        Err(e) => self.sheet.message = Some(("GridCraft".into(), gridcraft_ui_egui::clean_error(&e))),
-                    }
-                    self.sheet.after_engine();
-                }
-            }
+        while let Ok(Picked(path)) = self.answers.try_recv() {
+            self.open(&path);
         }
     }
 
@@ -159,13 +121,8 @@ impl eframe::App for GridApp {
     }
 
     fn raw_input_hook(&mut self, ctx: &egui::Context, raw: &mut egui::RawInput) {
-        // Android: Ctrl+C, X and V arrive as plain keys; egui-winit would have made them
-        // Copy, Cut and Paste with the system clipboard's text.
-        #[cfg(target_os = "android")]
-        clipboard::keys_to_clipboard_events(&mut raw.events, || match craft_android::android::clipboard::get() {
-            Some(craft_android::android::clipboard::Clip::Text(text) | craft_android::android::clipboard::Clip::Html { text, .. }) => Some(text),
-            _ => None,
-        });
+        // (craft-android's Shell has already made Ctrl+C, X and V copy, cut and paste with the
+        // system clipboard.)
         self.sheet.raw_input_hook(ctx, raw);
         // Files dropped on the window open as workbooks.
         for f in std::mem::take(&mut raw.dropped_files) {
@@ -177,13 +134,6 @@ impl eframe::App for GridApp {
 
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         self.sheet.ui(ui);
-        // Android: text egui copies (text boxes, a failed HTML copy) goes to the system clipboard.
-        #[cfg(target_os = "android")]
-        for text in clipboard::take_copied_text(ui.ctx()) {
-            if let Err(e) = craft_android::android::clipboard::set(craft_android::android::clipboard::Clip::Text(text)) {
-                log::warn!("dexgridcraft: clipboard: {e}");
-            }
-        }
     }
 
     fn on_exit(&mut self, _gl: Option<&eframe::glow::Context>) {
@@ -264,14 +214,5 @@ mod tests {
         assert_eq!(format_of("Page.html"), "html");
         assert_eq!(format_of("Copy"), "xlsx");
         assert_eq!(format_of("Old.xlsm"), "xlsx");
-    }
-
-    #[test]
-    fn each_format_saves_with_its_command() {
-        assert_eq!(save_command("/d/a.xlsx", "xlsx"), ("file.save", json!({"path": "/d/a.xlsx"})));
-        assert_eq!(save_command("/d/a", "xlsx"), ("file.save", json!({"path": "/d/a.xlsx"})));
-        assert_eq!(save_command("/d/a.pdf", "pdf"), ("file.exportPdf", json!({"path": "/d/a.pdf"})));
-        assert_eq!(save_command("/d/a.csv", "csv"), ("file.exportCsv", json!({"path": "/d/a.csv"})));
-        assert_eq!(save_command("/d/a.html", "html"), ("file.exportHtml", json!({"path": "/d/a.html"})));
     }
 }

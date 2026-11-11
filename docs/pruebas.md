@@ -52,6 +52,7 @@ Marca cada punto con ✅ / ❌ y anota lo que veas.
       archivo; tras elegirlo se guarda, el título cambia al nombre nuevo y el Backstage se cierra.
 - [ ] Archivo ▸ Exportar ▸ Crear PDF, CSV y Página web: cada uno pide dónde guardarlo y el archivo
       aparece con su contenido.
+- [ ] En el selector de guardar, pulsa Atrás o Cancelar: no se guarda nada y la app sigue normal.
 - [ ] Desde «Mis archivos», «Abrir con» un `.xlsx` → DexGridCraft: se abre en la app.
 - [ ] Desde otra app, «Compartir» un `.xlsx` o `.csv` → DexGridCraft: se abre.
 - [ ] En DeX, arrastra un `.xlsx` desde «Mis archivos» a la ventana: se abre.
@@ -88,9 +89,8 @@ Marca cada punto con ✅ / ❌ y anota lo que veas.
       `renderer glow`; si dice glow, anótalo.
 
 ## Límites conocidos (no son fallos)
-- «Guardar una copia» en `.xlsx` guarda el libro en el archivo elegido en lugar de dejar una copia
-  aparte; la exportación a PDF desde el Backstage usa las opciones por defecto (ver
-  [plan.md](plan.md)).
-- Tras «Guardar» en la pregunta de cerrar con un libro sin archivo, la app no se cierra sola: vuelve
-  a pulsar la X.
+- «Guardar una copia» en `.xlsx` hace lo mismo que en el GridCraft de escritorio: el libro pasa a
+  ser el archivo elegido.
+- Tras «Guardar» en la pregunta de cerrar con un libro sin archivo, la app no se cierra sola cuando
+  eliges dónde guardarlo: vuelve a pulsar la X.
 - Las ventanas de libro (Vista ▸ Nueva ventana) son internas, no ventanas de DeX aparte.
