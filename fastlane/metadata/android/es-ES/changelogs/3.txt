@@ -1,0 +1,1 @@
+DexFiles reconoce DexGridCraft y la propone como app predeterminada para las hojas de cálculo.

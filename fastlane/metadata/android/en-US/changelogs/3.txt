@@ -1,0 +1,1 @@
+DexFiles finds DexGridCraft and offers it as the default app for spreadsheets.

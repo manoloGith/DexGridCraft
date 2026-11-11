@@ -79,6 +79,19 @@
                 <data android:mimeType="text/comma-separated-values" />
                 <data android:mimeType="text/tab-separated-values" />
             </intent-filter>
+
+            <!-- DexFiles (manoloGith/DexFiles, docs/apps-dex.md) finds the Dex apps by this action
+                 and makes this one its default app for the extensions below; it then opens the
+                 files with VIEW (a content:// with read and write permission), as above. The
+                 spreadsheet formats GridCraft opens (gridcraft-engine's FileKind); .txt, .json,
+                 .html and .htm, which it also reads, are left to text editors and browsers. -->
+            <intent-filter>
+                <action android:name="io.github.dexfiles.action.OPEN" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <meta-data
+                android:name="io.github.dexfiles.extensions"
+                android:value="xlsx, xlsm, xltx, xltm, xls, xlt, xlsb, ods, csv, tsv, tab, slk, scjson" />
         </activity>
 
         <!-- RestartActivity and the clipboard's FileProvider come from craft-activity's manifest. -->
