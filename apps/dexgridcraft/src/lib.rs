@@ -18,6 +18,16 @@ use std::sync::mpsc::{Receiver, Sender, channel};
 use gridcraft_engine::Session;
 use gridcraft_ui_egui::{Services, SheetApp};
 
+/// The sheet on craft-android's dark paper in the dark theme, and back to white in the light one
+/// ([`craft_android::Shell::on_theme_change`]). GridCraft has no page colours of the user's to
+/// respect: the paper follows the theme. Only the painting changes (the fork's
+/// `theme::dark_paper`): white fills and black text and borders on the sheet; coloured ones,
+/// pictures and charts keep their colours, and the workbook is never touched.
+pub fn on_theme_change<A>(_: &mut A, dark: bool) {
+    let colors = dark.then_some((craft_android::paper::DARK_PAPER, craft_android::paper::LIGHT_INK));
+    gridcraft_ui_egui::theme::dark_paper::set(colors);
+}
+
 /// What to start with.
 #[derive(Clone, Debug, Default)]
 pub struct Launch {

@@ -33,7 +33,7 @@ fn android_main(app: AndroidApp) {
             let grid = GridApp::new(cc, &launch, move |answers| services(answers, print_dir));
             // craft-android's shell: the activity's mouse, keyboard and insets, Back as the close
             // button (GridCraft asks about unsaved workbooks), the title for DeX's taskbar.
-            Box::new(craft_android::Shell::new(grid).on_focus_lost(|a| a.save_prefs()).title(GridApp::title))
+            Box::new(craft_android::Shell::new(grid).on_focus_lost(|a| a.save_prefs()).title(GridApp::title).on_theme_change(crate::on_theme_change))
         },
     );
     // The window closed (GridCraft allowed it, after asking about unsaved changes).

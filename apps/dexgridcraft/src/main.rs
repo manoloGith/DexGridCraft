@@ -10,6 +10,6 @@ fn main() {
             below_ribbon: Some(dexgridcraft::tabs::below_ribbon()),
             ..Default::default()
         });
-        Box::new(craft_android::Shell::new(app).on_focus_lost(|a| a.save_prefs()).title(dexgridcraft::GridApp::title))
+        Box::new(craft_android::Shell::new(app).on_focus_lost(|a| a.save_prefs()).title(dexgridcraft::GridApp::title).on_theme_change(dexgridcraft::on_theme_change))
     });
 }
