@@ -2,7 +2,6 @@
 //! Access Framework's pickers, the clipboard, printing, links). Everything else (the JNI bridge,
 //! the environment, the activity's input, the lifecycle) is craft-android's.
 
-use std::future::Future;
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -47,28 +46,6 @@ fn filters(name: &str, extensions: &[&str]) -> Vec<(String, Vec<String>)> {
     vec![(name.to_owned(), extensions.iter().map(|e| (*e).to_owned()).collect())]
 }
 
-/// Wait for a picker's answer on a worker thread, then hand it to `then`. The picker itself must
-/// be started on the interface thread, which can't wait: the activity's pause waits for it.
-fn when_picked(picked: platform::pickers::Picked, then: impl FnOnce(Vec<PathBuf>) + Send + 'static) {
-    let spawned = std::thread::Builder::new().name("picker".into()).spawn(move || then(block_on(picked)));
-    if let Err(e) = spawned {
-        log::error!("dexgridcraft: picker thread: {e}");
-    }
-}
-
-/// craft-android's picker futures block inside `poll` until the answer comes, so one poll is
-/// the whole wait.
-fn block_on<T>(future: impl Future<Output = T>) -> T {
-    let mut future = std::pin::pin!(future);
-    let mut cx = std::task::Context::from_waker(std::task::Waker::noop());
-    loop {
-        if let std::task::Poll::Ready(value) = future.as_mut().poll(&mut cx) {
-            return value;
-        }
-        std::thread::yield_now();
-    }
-}
-
 fn path_string(path: &std::path::Path) -> Option<String> {
     path.to_str().map(str::to_owned).filter(|p| !p.is_empty())
 }
@@ -79,7 +56,7 @@ fn services(answers: Answers, print_dir: Arc<PathBuf>) -> Services {
         open_async: Some(Box::new(move || {
             let answers = answers.clone();
             let picked = platform::pickers::pick(PickKind::OpenFile, None, &filters("Spreadsheets", &SPREADSHEETS), None);
-            when_picked(picked, move |paths| {
+            platform::pickers::wait(picked, move |paths| {
                 if let Some(path) = paths.first().and_then(|p| path_string(p)) {
                     answers.send(Picked(path));
                 }
@@ -91,23 +68,21 @@ fn services(answers: Answers, print_dir: Arc<PathBuf>) -> Services {
             let format = crate::format_of(suggested);
             let name = std::path::Path::new(suggested).file_name().and_then(std::ffi::OsStr::to_str).unwrap_or("Book1.xlsx").to_owned();
             let picked = platform::pickers::pick(PickKind::Save, None, &filters(&format.to_uppercase(), &[format.as_str()]), Some(&name));
-            when_picked(picked, move |paths| {
+            platform::pickers::wait(picked, move |paths| {
                 if let Some(path) = paths.first().and_then(|p| path_string(p)) {
                     let _ = reply.send(path);
-                    platform::events::wake();
                 }
             });
         })),
         // Insert › Pictures: the picture's bytes, as GridCraft's web version reads them.
         pick_picture_async: Some(Box::new(|inbox: Inbox| {
             let picked = platform::pickers::pick(PickKind::OpenFile, None, &filters("Pictures (PNG, JPEG)", &["png", "jpg", "jpeg"]), None);
-            when_picked(picked, move |paths| {
+            platform::pickers::wait(picked, move |paths| {
                 let Some(path) = paths.first() else { return };
                 match std::fs::read(path) {
                     Ok(bytes) => {
                         let name = path.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_else(|| "picture.png".into());
                         inbox.lock().unwrap_or_else(std::sync::PoisonError::into_inner).push((name, bytes));
-                        platform::events::wake();
                     }
                     Err(e) => log::warn!("dexgridcraft: picture {}: {e}", path.display()),
                 }
